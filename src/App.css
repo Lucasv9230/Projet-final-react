@@ -17,6 +17,24 @@ h1 {
   margin-bottom: 24px;
 }
 
+.search-input {
+  width: 100%;
+  max-width: 450px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
 .status-message {
   padding: 16px;
   border-radius: 8px;
