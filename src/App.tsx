@@ -4,7 +4,8 @@ import './App.css';
 interface Flight {
   plaque: string;
   pays: string;
-  modele: string;
+  latitude: number | null;
+  longitude: number | null;
   vitesse: number | null;
   altitude: number | null;
 }
@@ -16,23 +17,11 @@ interface OpenSkyApiResponse {
   states: OpenSkyState[] | null;
 }
 
-function getModele(category?: number): string {
-  switch (category) {
-    case 2:
-      return 'Avion léger (< 7t)';
-    case 3:
-      return 'Moyen porteur (A320, B737)';
-    case 4:
-      return 'Gros porteur (A350, B777)';
-    case 5:
-      return 'Très gros porteur (A380, B747)';
-    case 6:
-      return 'Haute performance (Chasseur)';
-    case 7:
-      return 'Hélicoptère';
-    default:
-      return 'Avion de ligne standard';
-  }
+function formatPosition(lat: number | null, lon: number | null): string {
+  if (lat === null || lon === null) return 'Inconnue';
+  const latDir = lat >= 0 ? 'N' : 'S';
+  const lonDir = lon >= 0 ? 'E' : 'O';
+  return `${Math.abs(lat).toFixed(3)}° ${latDir}, ${Math.abs(lon).toFixed(3)}° ${lonDir}`;
 }
 
 function App() {
@@ -60,14 +49,16 @@ function App() {
           const rawCallsign = typeof state[1] === 'string' ? state[1].trim() : '';
           const icao = typeof state[0] === 'string' ? state[0] : '';
           const country = typeof state[2] === 'string' ? state[2] : 'Inconnu';
+          const lon = typeof state[5] === 'number' ? state[5] : null;
+          const lat = typeof state[6] === 'number' ? state[6] : null;
           const baroAlt = typeof state[7] === 'number' ? state[7] : null;
           const velocityMs = typeof state[9] === 'number' ? state[9] : null;
-          const cat = typeof state[17] === 'number' ? state[17] : undefined;
 
           return {
             plaque: (rawCallsign || icao || 'INCONNU').toUpperCase(),
             pays: country,
-            modele: getModele(cat),
+            latitude: lat,
+            longitude: lon,
             vitesse: velocityMs !== null ? Math.round(velocityMs * 3.6) : null,
             altitude: baroAlt !== null ? Math.round(baroAlt) : null,
           };
@@ -101,7 +92,7 @@ function App() {
               <tr>
                 <th>Plaque</th>
                 <th>Pays</th>
-                <th>Modèle</th>
+                <th>Position (Lat, Lon)</th>
                 <th>Vitesse</th>
                 <th>Altitude</th>
               </tr>
@@ -111,7 +102,9 @@ function App() {
                 <tr key={`${flight.plaque}-${idx}`}>
                   <td className="font-bold">{flight.plaque}</td>
                   <td>{flight.pays}</td>
-                  <td>{flight.modele}</td>
+                  <td className="position-cell">
+                    {formatPosition(flight.latitude, flight.longitude)}
+                  </td>
                   <td>{flight.vitesse !== null ? `${flight.vitesse} km/h` : 'N/A'}</td>
                   <td>{flight.altitude !== null ? `${flight.altitude.toLocaleString()} m` : 'N/A'}</td>
                 </tr>

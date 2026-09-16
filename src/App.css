@@ -67,3 +67,10 @@ h1 {
   font-weight: 700;
   color: #0f172a;
 }
+
+.position-cell {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9rem;
+  color: #0369a1;
+  font-weight: 500;
+}
