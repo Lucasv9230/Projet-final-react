@@ -29,6 +29,8 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [searchText, setSearchText] = useState("");
+
   useEffect(() => {
     const targetUrl = '/api/opensky?lamin=42.0&lomin=-4.5&lamax=51.0&lomax=8.5';
 
@@ -75,11 +77,27 @@ function App() {
       });
   }, []);
 
+  const filteredFlights = flights.filter(f =>
+    f.plaque.toLowerCase().startsWith(searchText.toLowerCase())
+  );
+
   return (
     <div className="container">
+
+      {/* Champ de recherche */}
+      <input
+        type="text"
+        placeholder="Tape une lettre pour filtrer les modèles..."
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        className="search-input"
+      />
+
       <h1>Suivi des Vols — OpenSky Network</h1>
       <p className="subtitle">
-        {loading ? 'Connexion au radar OpenSky...' : `${flights.length} aéronefs détectés`}
+        {loading
+          ? 'Connexion au radar OpenSky...'
+          : `${filteredFlights.length} aéronefs trouvés`}
       </p>
 
       {loading && <div className="status-message">Chargement des données en cours...</div>}
@@ -98,7 +116,7 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {flights.map((flight, idx) => (
+              {filteredFlights.map((flight, idx) => (
                 <tr key={`${flight.plaque}-${idx}`}>
                   <td className="font-bold">{flight.plaque}</td>
                   <td>{flight.pays}</td>
