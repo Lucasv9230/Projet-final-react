@@ -17,6 +17,8 @@ interface OpenSkyApiResponse {
   states: OpenSkyState[] | null;
 }
 
+type SortOrder = 'none' | 'ascending' | 'descending';
+
 function formatPosition(lat: number | null, lon: number | null): string {
   if (lat === null || lon === null) return 'Inconnue';
   const latDir = lat >= 0 ? 'N' : 'S';
@@ -54,6 +56,8 @@ function App() {
   const [plaqueSearch, setPlaqueSearch] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
   const [positionSearch, setPositionSearch] = useState('');
+  const [speedOrder, setSpeedOrder] = useState<SortOrder>('none');
+  const [altitudeOrder, setAltitudeOrder] = useState<SortOrder>('none');
 
   useEffect(() => {
     const targetUrl = '/api/opensky?lamin=42.0&lomin=-4.5&lamax=51.0&lomax=8.5';
@@ -118,12 +122,37 @@ function App() {
         formattedPosition.includes(normalizedPositionSearch) ||
         coordinates.includes(normalizedPositionSearch))
     );
+  }).sort((firstFlight, secondFlight) => {
+    if (speedOrder !== 'none') {
+      const speedComparison = compareNullableNumbers(firstFlight.vitesse, secondFlight.vitesse, speedOrder);
+      if (speedComparison !== 0) return speedComparison;
+    }
+
+    if (altitudeOrder !== 'none') {
+      return compareNullableNumbers(firstFlight.altitude, secondFlight.altitude, altitudeOrder);
+    }
+
+    return firstFlight.pays.localeCompare(secondFlight.pays);
   });
+
+  function compareNullableNumbers(
+    firstValue: number | null,
+    secondValue: number | null,
+    order: SortOrder,
+  ): number {
+    if (firstValue === null && secondValue === null) return 0;
+    if (firstValue === null) return 1;
+    if (secondValue === null) return -1;
+
+    return order === 'ascending' ? firstValue - secondValue : secondValue - firstValue;
+  }
 
   const resetFilters = () => {
     setPlaqueSearch('');
     setCountryFilter('');
     setPositionSearch('');
+    setSpeedOrder('none');
+    setAltitudeOrder('none');
   };
 
   return (
@@ -167,6 +196,36 @@ function App() {
             className="filter-control"
           />
         </label>
+
+        <label className="filter-field">
+          <span>Vitesse <small>(tri prioritaire)</small></span>
+          <select
+            value={speedOrder}
+            onChange={(e) => setSpeedOrder(e.target.value as SortOrder)}
+            className="filter-control"
+          >
+            <option value="none">Ordre par défaut</option>
+            <option value="ascending">Priorité : du plus lent au plus rapide</option>
+            <option value="descending">Priorité : du plus rapide au plus lent</option>
+          </select>
+        </label>
+
+        <label className="filter-field">
+          <span>Altitude <small>(tri prioritaire)</small></span>
+          <select
+            value={altitudeOrder}
+            onChange={(e) => setAltitudeOrder(e.target.value as SortOrder)}
+            className="filter-control"
+          >
+            <option value="none">Ordre par défaut</option>
+            <option value="ascending">Priorité : de la plus basse à la plus haute</option>
+            <option value="descending">Priorité : de la plus haute à la plus basse</option>
+          </select>
+        </label>
+
+        <p className="sort-note">
+          Sans tri vitesse ou altitude, les pays sont classés alphabétiquement. Un tri numérique devient prioritaire.
+        </p>
 
         <button type="button" className="reset-button" onClick={resetFilters}>
           Réinitialiser
