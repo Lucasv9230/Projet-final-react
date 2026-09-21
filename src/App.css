@@ -100,7 +100,7 @@ h1 {
 /* Zone des filtres */
 .filters {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
   gap: 16px;
   align-items: end;
   margin: 0 0 32px 0;
@@ -118,6 +118,20 @@ h1 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.filter-field small {
+  color: var(--primary-hover);
+  font-size: 0.7rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.sort-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
 }
 
 .filter-control, .search-input {
@@ -160,6 +174,7 @@ h1 {
   white-space: nowrap;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px var(--primary-shadow);
+  align-self: end;
 }
 
 .reset-button:hover {
