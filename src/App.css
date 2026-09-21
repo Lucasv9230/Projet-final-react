@@ -247,6 +247,8 @@ h1 {
   padding: 4px 10px;
   border-radius: 6px;
   display: inline-block;
+  min-width: 85px; /* Largeur fixe pour unifier les cases */
+  text-align: center; /* Centrage du texte dans le badge */
 }
 
 .position-cell {
