@@ -24,6 +24,28 @@ function formatPosition(lat: number | null, lon: number | null): string {
   return `${Math.abs(lat).toFixed(3)}° ${latDir}, ${Math.abs(lon).toFixed(3)}° ${lonDir}`;
 }
 
+function ThemeToggle() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, [isDark]);
+
+  return (
+    <button 
+      onClick={() => setIsDark(!isDark)}
+      className="reset-button"
+      style={{ float: 'right', marginBottom: '20px' }}
+    >
+      {isDark ? 'Passer en Mode Clair ☀️' : 'Passer en Mode Sombre 🌙'}
+    </button>
+  );
+}
+
 function App() {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -106,7 +128,8 @@ function App() {
 
   return (
     <div className="container">
-
+      <ThemeToggle />
+      
       <h1>Suivi des Vols — OpenSky Network</h1>
       <div className="filters" aria-label="Filtres des aéronefs">
         <label className="filter-field">
