@@ -29,7 +29,9 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchText, setSearchText] = useState("");
+  const [plaqueSearch, setPlaqueSearch] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
+  const [positionSearch, setPositionSearch] = useState('');
 
   useEffect(() => {
     const targetUrl = '/api/opensky?lamin=42.0&lomin=-4.5&lamax=51.0&lomax=8.5';
@@ -77,23 +79,76 @@ function App() {
       });
   }, []);
 
-  const filteredFlights = flights.filter(f =>
-    f.plaque.toLowerCase().startsWith(searchText.toLowerCase())
-  );
+  const countries = Array.from(new Set(flights.map((flight) => flight.pays)))
+    .filter((country) => country !== 'Inconnu')
+    .sort((firstCountry, secondCountry) => firstCountry.localeCompare(secondCountry));
+
+  const normalizedPlaqueSearch = plaqueSearch.trim().toLowerCase();
+  const normalizedPositionSearch = positionSearch.trim().toLowerCase();
+  const filteredFlights = flights.filter((flight) => {
+    const formattedPosition = formatPosition(flight.latitude, flight.longitude).toLowerCase();
+    const coordinates = `${flight.latitude ?? ''}, ${flight.longitude ?? ''}`.toLowerCase();
+
+    return (
+      (!countryFilter || flight.pays === countryFilter) &&
+      (!normalizedPlaqueSearch || flight.plaque.toLowerCase().includes(normalizedPlaqueSearch)) &&
+      (!normalizedPositionSearch ||
+        formattedPosition.includes(normalizedPositionSearch) ||
+        coordinates.includes(normalizedPositionSearch))
+    );
+  });
+
+  const resetFilters = () => {
+    setPlaqueSearch('');
+    setCountryFilter('');
+    setPositionSearch('');
+  };
 
   return (
     <div className="container">
 
-      {/* Champ de recherche */}
-      <input
-        type="text"
-        placeholder="Tape une lettre pour filtrer les modèles..."
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        className="search-input"
-      />
-
       <h1>Suivi des Vols — OpenSky Network</h1>
+      <div className="filters" aria-label="Filtres des aéronefs">
+        <label className="filter-field">
+          <span>Pays</span>
+          <select
+            value={countryFilter}
+            onChange={(e) => setCountryFilter(e.target.value)}
+            className="filter-control"
+          >
+            <option value="">Tous les pays</option>
+            {countries.map((country) => (
+              <option key={country} value={country}>{country}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="filter-field">
+          <span>Plaque</span>
+          <input
+            type="search"
+            placeholder="Ex. AFR..."
+            value={plaqueSearch}
+            onChange={(e) => setPlaqueSearch(e.target.value)}
+            className="filter-control"
+          />
+        </label>
+
+        <label className="filter-field">
+          <span>Position</span>
+          <input
+            type="search"
+            placeholder="Ex. 48.8 ou 2.3"
+            value={positionSearch}
+            onChange={(e) => setPositionSearch(e.target.value)}
+            className="filter-control"
+          />
+        </label>
+
+        <button type="button" className="reset-button" onClick={resetFilters}>
+          Réinitialiser
+        </button>
+      </div>
       <p className="subtitle">
         {loading
           ? 'Connexion au radar OpenSky...'
@@ -129,6 +184,9 @@ function App() {
               ))}
             </tbody>
           </table>
+          {filteredFlights.length === 0 && (
+            <p className="empty-message">Aucun aéronef ne correspond à ces filtres.</p>
+          )}
         </div>
       )}
     </div>
