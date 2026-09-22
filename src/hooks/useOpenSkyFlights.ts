@@ -11,9 +11,9 @@ export interface Flight {
 
 type OpenSkyState = (string | number | boolean | null | undefined)[];
 
-interface OpenSkyApiResponse {
+interface OpenSkyApiResponse<T> {
   time: number;
-  states: OpenSkyState[] | null;
+  states: T[] | null;
 }
 
 export function useOpenSkyFlights(): {
@@ -28,15 +28,18 @@ export function useOpenSkyFlights(): {
   useEffect(() => {
     const targetUrl = '/api/opensky?lamin=42.0&lomin=-4.5&lamax=51.0&lomax=8.5';
     const controller = new AbortController();
+    let isActive = true;
 
     fetch(targetUrl, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Erreur HTTP OpenSky : ${res.status}`);
         }
-        return res.json() as Promise<OpenSkyApiResponse>;
+        return res.json() as Promise<OpenSkyApiResponse<OpenSkyState>>;
       })
       .then((data) => {
+        if (!isActive) return;
+
         if (!data.states) {
           setFlights([]);
           return;
@@ -64,15 +67,19 @@ export function useOpenSkyFlights(): {
         setFlights(formatted);
       })
       .catch((err: unknown) => {
+        if (!isActive) return;
         if (err instanceof DOMException && err.name === 'AbortError') return;
         const msg = err instanceof Error ? err.message : 'Erreur inconnue';
         setError(msg);
       })
       .finally(() => {
-        setLoading(false);
+        if (isActive) setLoading(false);
       });
 
-    return () => controller.abort();
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
   }, []);
 
   return { flights, loading, error };

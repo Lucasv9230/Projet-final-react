@@ -159,6 +159,18 @@ h1 {
   box-shadow: 0 0 0 4px var(--primary-shadow);
 }
 
+.filter-control[aria-invalid="true"] {
+  border-color: var(--error-border);
+}
+
+.field-error {
+  color: var(--error-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* Boutons */
 .reset-button {
   min-height: 44px;
@@ -184,6 +196,26 @@ h1 {
 
 .reset-button:active {
   transform: translateY(0);
+}
+
+.reset-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.filter-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.secondary-button {
+  color: var(--text-heading);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
 }
 
 /* Messages */
@@ -264,6 +296,15 @@ h1 {
   display: inline-block;
   min-width: 85px; /* Largeur fixe pour unifier les cases */
   text-align: center; /* Centrage du texte dans le badge */
+}
+
+.font-bold a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.font-bold a:hover {
+  text-decoration: underline;
 }
 
 .position-cell {

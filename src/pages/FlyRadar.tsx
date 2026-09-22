@@ -1,9 +1,30 @@
 import { type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import '../App.css';
+import Panel from '../components/Panel';
 import StatusMessage from '../components/StatusMessage';
 import { useAppContext } from '../context/useAppContext';
 import { formatPosition, useFlightFilters } from '../hooks/useFlightFilters';
 import { useOpenSkyFlights } from '../hooks/useOpenSkyFlights';
+
+interface FilterErrors {
+  plaque?: string;
+  position?: string;
+}
+
+function validateFilters(plaque: string, position: string): FilterErrors {
+  const errors: FilterErrors = {};
+
+  if (plaque && !/^[a-z0-9 -]+$/i.test(plaque)) {
+    errors.plaque = 'La plaque ne peut contenir que des lettres, chiffres, espaces ou tirets.';
+  }
+
+  if (position && !/^[+-]?\d+(?:\.\d+)?(?:\s*,\s*[+-]?\d+(?:\.\d+)?)?$/.test(position.trim())) {
+    errors.position = 'Saisissez une coordonnée numérique, par exemple 48.8 ou 48.8, 2.3.';
+  }
+
+  return errors;
+}
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useAppContext();
@@ -37,13 +58,16 @@ export default function FlyRadar() {
     filteredFlights,
     resetFilters,
   } = useFlightFilters(flights);
+  const filterErrors = validateFilters(plaqueSearch, positionSearch);
+  const hasFilterErrors = Object.values(filterErrors).some(Boolean);
 
   const handleFilterSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (hasFilterErrors) return;
   };
 
   return (
-    <div className="container">
+    <Panel className="container">
       <ThemeToggle />
 
       <h1>Suivi des Vols — OpenSky Network</h1>
@@ -67,23 +91,29 @@ export default function FlyRadar() {
         <label className="filter-field">
           <span>Plaque</span>
           <input
+            aria-describedby={filterErrors.plaque ? 'plaque-error' : undefined}
+            aria-invalid={Boolean(filterErrors.plaque)}
             type="search"
             placeholder="Ex. AFR..."
             value={plaqueSearch}
             onChange={(event) => setPlaqueSearch(event.target.value)}
             className="filter-control"
           />
+          {filterErrors.plaque && <span id="plaque-error" className="field-error" role="alert">{filterErrors.plaque}</span>}
         </label>
 
         <label className="filter-field">
           <span>Position</span>
           <input
+            aria-describedby={filterErrors.position ? 'position-error' : undefined}
+            aria-invalid={Boolean(filterErrors.position)}
             type="search"
             placeholder="Ex. 48.8 ou 2.3"
             value={positionSearch}
             onChange={(event) => setPositionSearch(event.target.value)}
             className="filter-control"
           />
+          {filterErrors.position && <span id="position-error" className="field-error" role="alert">{filterErrors.position}</span>}
         </label>
 
         <label className="filter-field">
@@ -120,9 +150,14 @@ export default function FlyRadar() {
           Sans tri vitesse ou altitude, les pays sont classés alphabétiquement. Un tri numérique devient prioritaire.
         </p>
 
-        <button type="button" className="reset-button" onClick={resetFilters}>
-          Réinitialiser
-        </button>
+        <div className="filter-actions">
+          <button type="submit" className="reset-button" disabled={hasFilterErrors}>
+            Appliquer les filtres
+          </button>
+          <button type="button" className="reset-button secondary-button" onClick={resetFilters}>
+            Réinitialiser
+          </button>
+        </div>
       </form>
 
       <p className="subtitle">
@@ -147,7 +182,9 @@ export default function FlyRadar() {
             <tbody>
               {filteredFlights.map((flight, index) => (
                 <tr key={`${flight.plaque}-${index}`}>
-                  <td className="font-bold">{flight.plaque}</td>
+                  <td className="font-bold">
+                    <Link to={`/flight/${encodeURIComponent(flight.plaque)}`}>{flight.plaque}</Link>
+                  </td>
                   <td>{flight.pays}</td>
                   <td className="position-cell">
                     {formatPosition(flight.latitude, flight.longitude)}
@@ -165,6 +202,6 @@ export default function FlyRadar() {
           )}
         </div>
       )}
-    </div>
+    </Panel>
   );
 }
