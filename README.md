@@ -1,256 +1,181 @@
-# ✈️ OpenSky Radar — Suivi du Trafic Aérien en Direct
+# OpenSky Radar - Suivi du Trafic Aérien en Direct
 
-Application web moderne développée avec **React 19**, **TypeScript (mode strict)** et **Vite**.  
-Le projet se connecte à l'API publique d'**OpenSky Network** pour récupérer, filtrer, trier et afficher en temps réel les aéronefs survolant l'Europe.
-
----
-
-## 👥 Équipe et Répartition du Travail (Groupe de 4)
-
-Le projet a été conçu et développé en **équipe de 4 personnes**. Le travail a été réparti de façon modulaire et équilibrée selon les domaines de compétences suivants :
-
-| Membre | Rôle principal & Responsabilités | Réalisations majeures |
-| :--- | :--- | :--- |
-| **Naël Morellon** (`nael05`) | **Architecture socle, Setup & Tests** | • Initialisation du projet Vite + React + TypeScript.<br>• Configuration du proxy de développement OpenSky (`vite.config.ts`) pour contourner CORS.<br>• Configuration et mise en place de la suite de tests (Vitest + Testing Library).<br>• Typage strict TypeScript (`tsconfig.app.json`) et design de la page 404. |
-| **Lucas Vauclin** (`Lucasv9230`) | **Routage, Intégration API & Workflow** | • Mise en place du routage complet avec `react-router-dom` v6 (`RoutesFile.tsx`).<br>• Développement de la barre de navigation (`NavBar.tsx`) et intégration de la vue radar.<br>• Intégration initiale du fetch des aéronefs OpenSky et passage des routes dynamiques.<br>• Création du script d'automatisation de démarrage (`start_project.bat`). |
-| **Anguelo Carath** (`anguelo-code`) | **Composants UI modulaires & Logique de Filtrage** | • Conception des composants atomiques réutilisables (`Panel.tsx`, `StatusMessage.tsx`).<br>• Développement de la logique des filtres et du tri multi-critères (`useFlightFilters.ts`).<br>• Validation conditionnelle des formulaires et gestion des messages d'erreur.<br>• Résolution de bugs fonctionnels et optimisation de la logique d'état. |
-| **Romain Tholle** (`romain`) | **UI/UX Design, Thème Global & Documentation** | • Conception intégrale du design moderne du tableau de bord (`App.css`).<br>• Implémentation du système de Dark / Light Mode via Context API et `useReducer`.<br>• Création des animations du radar (ondes, balayage, blips pulsants) et responsive design.<br>• Harmonisation visuelle (badges de plaque, cellules GPS) et rédaction de la documentation. |
+Application web réalisée avec React 19, TypeScript (en mode strict) et Vite.
+Ce projet permet de visualiser en temps réel les avions qui survolent l'Europe grâce aux données fournies par l'API publique OpenSky Network.
 
 ---
 
-## 🏗️ Architecture Globale et Fonctionnement Technique
+## Équipe et répartition du travail
 
-### 1. Flux de données (Data Flow)
-```
-[ OpenSky Network API ]
-          │ (Requête REST externe)
-          ▼
-[ Proxy local Vite (/api/opensky) ]
-          │ (Contournement CORS & réécriture d'URL)
-          ▼
-[ Hook useOpenSkyFlights ]
-          │ (Fetch asynchrone, typage, AbortController, mapping des coordonnées)
-          ▼
-[ Hook useFlightFilters ]
-          │ (Filtrage pays/plaque/coordonnées, normalisation texte, tri vitesse/altitude)
-          ▼
-[ Pages & Composants UI ] (FlyRadar, FlightDetails, Panel, StatusMessage)
-```
+Nous avons réalisé ce projet en groupe de 4 étudiants. Le travail a été réparti équitablement en 4 grands rôles :
 
-### 2. Contournement des restrictions CORS via Proxy Vite
-L'API publique OpenSky Network bloque les requêtes directes provenant du navigateur (CORS). Pour résoudre ce problème sans backend lourd :
-- Un proxy est configuré dans [vite.config.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/vite.config.ts).
-- Tout appel vers `/api/opensky` est intercepté par le serveur de dev Vite et redirigé vers `https://opensky-network.org/api/states/all`.
-- La zone géographique surveillée est restreinte via les paramètres de requête géographiques (Europe de l'Ouest / France : `lamin=42.0`, `lomin=-4.5`, `lamax=51.0`, `lomax=8.5`).
+- **Naël Morellon** :
+  - Initialisation et configuration du projet (Vite, React, TypeScript).
+  - Configuration du proxy de développement dans vite.config.ts pour régler les problèmes de CORS avec l'API OpenSky.
+  - Mise en place des tests automatisés avec Vitest et React Testing Library.
+  - Configuration du compilateur TypeScript en mode strict (tsconfig.app.json).
+  - Intégration et style de la page d'erreur 404.
 
-### 3. Gestion d'état (State Management)
-- **État Global ([AppContext.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/context/AppContext.tsx))** : Utilise l'API Contexte combinée au hook `useReducer` pour gérer le thème (`light` / `dark`). Dès que le thème change, un attribut `data-theme` est appliqué dynamiquement à la racine HTML, ce qui déclenche instantanément la transition des variables CSS.
-- **État Métier & Asynchrone ([useOpenSkyFlights.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/hooks/useOpenSkyFlights.ts))** : Gère les 3 états fondamentaux du chargement asynchrone (`loading`, `error`, `flights`), tout en évitant les fuites de mémoire grâce à `AbortController`.
-- **État des Filtres ([useFlightFilters.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/hooks/useFlightFilters.ts))** : Gère la recherche textuelle par plaque, par position géographique, la sélection du pays, ainsi que les tris prioritaires (vitesse croissante/décroissante, altitude croissante/décroissante).
+- **Lucas Vauclin** :
+  - Mise en place du routage complet avec react-router-dom v6 (RoutesFile.tsx).
+  - Développement du composant de navigation (NavBar.tsx).
+  - Intégration de la page principale FlyRadar et premier raccordement avec l'API OpenSky.
+  - Création de la page d'accueil.
+  - Création du script start_project.bat pour lancer automatiquement le projet en un clic.
 
-### 4. Typage strict TypeScript
-Le projet applique la règle du **zéro `any`** :
-- Les données brutes de l'API sont typées sous forme de tableau hétérogène `OpenSkyState` et enveloppées dans une interface générique `OpenSkyApiResponse<T>`.
-- Les entités métiers sont strictement modélisées par des interfaces dédiées (`Flight`, `AppState`, `AppContextValue`).
-- Les valeurs énumérables utilisent des unions de types stricts (`Theme = 'light' | 'dark'`, `SortOrder = 'none' | 'ascending' | 'descending'`, `StatusVariant = 'info' | 'error'`).
+- **Anguelo Carath** :
+  - Création des composants réutilisables (Panel.tsx, StatusMessage.tsx).
+  - Développement de la logique des filtres et du tri multi-critères dans le hook useFlightFilters.ts.
+  - Gestion de la validation du formulaire de recherche et des messages d'erreur.
+  - Correction des bugs sur l'affichage des données.
+
+- **Romain Tholle** :
+  - Création complète du design de l'application et de la feuille de style App.css.
+  - Mise en place du mode sombre / mode clair avec l'API Context de React et le hook useReducer.
+  - Création des animations du radar (balayage, cercles et points lumineux).
+  - Harmonisation graphique des tableaux et badges de données.
+  - Rédaction et organisation de la documentation du projet.
 
 ---
 
-## 📁 Arborescence Complète et Explication Fichier par Fichier
+## Architecture et fonctionnement du projet
 
-```
-Projet-final-react/
-│
-├── ⚙️ Configuration Racine
-│   ├── .gitignore
-│   ├── .oxlintrc.json
-│   ├── index.html
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── README.md
-│   ├── start_project.bat
-│   ├── tsconfig.json
-│   ├── tsconfig.app.json
-│   ├── tsconfig.node.json
-│   ├── vite.config.ts
-│   └── vitest.config.ts
-│
-├── 📂 public/
-│   ├── favicon.svg
-│   └── icons.svg
-│
-└── 📂 src/
-    ├── main.tsx
-    ├── RoutesFile.tsx
-    ├── App.tsx
-    ├── index.css
-    ├── App.css
-    │
-    ├── 📂 assets/
-    │   └── vite.svg
-    │
-    ├── 📂 components/
-    │   ├── NavBar.tsx
-    │   ├── Panel.tsx
-    │   └── StatusMessage.tsx
-    │
-    ├── 📂 context/
-    │   ├── AppContextDefinition.ts
-    │   ├── AppContext.tsx
-    │   └── useAppContext.ts
-    │
-    ├── 📂 hooks/
-    │   ├── useOpenSkyFlights.ts
-    │   └── useFlightFilters.ts
-    │
-    ├── 📂 pages/
-    │   ├── FlyRadar.tsx
-    │   ├── FlightDetails.tsx
-    │   ├── About.tsx
-    │   └── NotFound.tsx
-    │
-    └── 📂 test/
-        ├── setup.ts
-        ├── App.test.tsx
-        └── useFlightFilters.test.ts
-```
+### Flux des données
+1. L'application interroge l'API OpenSky Network via l'URL locale `/api/opensky`.
+2. Le serveur de développement Vite intercepte cet appel grâce à son proxy et le redirige vers l'API externe `https://opensky-network.org/api/states/all`. Cela permet d'éviter les blocages liés au CORS.
+3. Le hook personnalisé `useOpenSkyFlights` reçoit les données brutes, les filtre sur une zone géographique définie (Europe / France), vérifie leur format et les transforme en objets typés exploitables par React.
+4. Le hook `useFlightFilters` prend la liste des vols et applique les filtres demandés par l'utilisateur (par pays, plaque d'immatriculation ou coordonnées) ainsi que les tris (vitesse et altitude).
+5. Les composants graphiques (`FlyRadar`, `Panel`, `StatusMessage`) affichent ensuite les résultats sous forme de tableau ou d'alertes.
+
+### Gestion de l'état
+- **État global (thème)** : Le thème de l'application (clair ou sombre) est partagé dans toute l'application via `AppContext`. Il est géré avec un `useReducer` pour modifier l'état de façon propre. Un `useEffect` applique l'attribut `data-theme="dark"` sur la balise html pour activer les variables CSS correspondantes.
+- **État des requêtes API** : Le hook `useOpenSkyFlights` gère les états de chargement (`loading`), d'erreur (`error`) et de succès (`flights`). Il intègre un `AbortController` pour annuler les requêtes si le composant est démonté avant la fin du téléchargement.
+- **État local des filtres** : Le hook `useFlightFilters` conserve les valeurs des champs de recherche (recherche de plaque, coordonnées, pays sélectionné, sens de tri) et recalcule dynamiquement la liste filtrée à chaque modification.
+
+### Routage
+Le routage est géré avec `react-router-dom` v6 dans le fichier `RoutesFile.tsx` :
+- Un composant de structure `Layout` affiche la barre de navigation sur toutes les pages principales grâce à la balise `<Outlet />`.
+- `/` : Page d'accueil de présentation.
+- `/flyradar` : Page principale du radar avec la liste des vols et les filtres.
+- `/flight/:icao` : Page de détail d'un avion avec son identifiant ICAO passé dans l'URL.
+- `/about` : Page d'informations sur le projet.
+- `*` : Page 404 en cas d'URL introuvable.
+
+### Typage TypeScript
+Le projet respecte les règles strictes de TypeScript. Aucun type `any` n'est utilisé :
+- Les données des vols sont typées via l'interface `Flight`.
+- Les réponses de l'API utilisent un type générique `OpenSkyApiResponse<T>`.
+- Les états possibles sont verrouillés avec des types unions (`Theme = 'light' | 'dark'`, `SortOrder = 'none' | 'ascending' | 'descending'`, `StatusVariant = 'info' | 'error'`).
 
 ---
 
-### 1. Fichiers de Configuration et Racine
+## Structure du projet et rôle de chaque fichier
 
-| Fichier | Rôle et Utilité détaillée |
-| :--- | :--- |
-| [.gitignore](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/.gitignore) | Spécifie à Git les dossiers et fichiers à ne pas versionner : `node_modules/`, dossiers de build `dist/`, fichiers de cache `.tmp`, `.local`, et fichiers d'environnement `.env`. |
-| [.oxlintrc.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/.oxlintrc.json) | Fichier de configuration du linter ultra-rapide **Oxlint**. Active les règles de vérification pour React (notamment les règles strictes des Hooks `react/rules-of-hooks`) et TypeScript. |
-| [index.html](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/index.html) | Point d'entrée HTML de l'application SPA (Single Page Application). Définit la balise `<div id="root"></div>` dans laquelle le composant React racine est monté, et charge le favicon ainsi que [src/main.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/main.tsx). |
-| [package.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/package.json) | Manifeste du projet npm. Liste les métadonnées, les dépendances de production (`react`, `react-dom`, `react-router-dom`, `lucide-react`), les dépendances de développement (`vite`, `vitest`, `typescript`, `@testing-library/*`, `oxlint`), et les scripts d'exécution (`dev`, `build`, `typecheck`, `lint`, `test`, `preview`). |
-| [package-lock.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/package-lock.json) | Arbre de dépendances verrouillé assurant des installations d'environnement déterministes et identiques sur les postes des 4 membres de l'équipe. |
-| [start_project.bat](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/start_project.bat) | Script Batch Windows automatisé. Permet de lancer le projet en 1 double-clic : vérifie la présence de `package.json`, installe automatiquement les dépendances si `node_modules` est absent, lance le serveur local Vite dans un terminal dédié et ouvre automatiquement le navigateur web sur `http://localhost:5173`. |
-| [tsconfig.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/tsconfig.json) | Fichier maître de TypeScript configuré en mode « références de projet » (*Project References*). Il lie les configurations spécifiques à l'application cliente ([tsconfig.app.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/tsconfig.app.json)) et à l'outillage Node ([tsconfig.node.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/tsconfig.node.json)). |
-| [tsconfig.app.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/tsconfig.app.json) | Configuration stricte du compilateur TypeScript pour le code applicatif du dossier `src/` : cible `ES2023`, `strict: true`, interdiction des variables inutilisées (`noUnusedLocals`, `noUnusedParameters`), résolution moderne `bundler`, et exclusion de toute sortie JS (`noEmit: true`, Vite s'en chargeant). |
-| [tsconfig.node.json](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/tsconfig.node.json) | Configuration TypeScript réservée aux fichiers de configuration exécutés dans l'environnement Node.js (tels que [vite.config.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/vite.config.ts) et [vitest.config.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/vitest.config.ts)). |
-| [vite.config.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/vite.config.ts) | Configuration du bundler Vite. Intègre le plugin officiel `@vitejs/plugin-react` pour le support JSX/TSX et le Fast Refresh (HMR), et déclare le serveur proxy `/api/opensky` pour rediriger les requêtes vers l'API externe OpenSky sans blocage CORS. |
-| [vitest.config.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/vitest.config.ts) | Configuration du framework de test **Vitest**. Spécifie l'environnement de rendu DOM synthétique (`jsdom`), le fichier de bootstrapping des tests ([src/test/setup.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/test/setup.ts)) et le pool d'exécution mono-thread pour des tests fiables. |
-| [README.md](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/README.md) | Document de référence du projet (ce fichier), détaillant le rôle des membres, l'architecture logicielle, l'explication de tous les dossiers et fichiers, et le guide d'utilisation. |
+### Fichiers à la racine
 
----
+- **.gitignore** : Liste les dossiers et fichiers que Git ne doit pas suivre (le dossier node_modules, les fichiers de build dans dist, les caches locaux).
+- **.oxlintrc.json** : Fichier de configuration du linter Oxlint pour vérifier la qualité du code et s'assurer du bon respect des règles de React et TypeScript.
+- **index.html** : Page HTML principale de la SPA (Single Page Application). Elle contient la balise div avec l'identifiant root où l'application React s'affiche, et charge le fichier main.tsx.
+- **package.json** : Contient la liste des dépendances du projet (React, React Router, Lucide-react, Vitest, TypeScript, etc.) et les scripts de commande.
+- **package-lock.json** : Enregistre les versions exactes des dépendances installées pour que tous les membres du groupe aient exactement le même environnement.
+- **start_project.bat** : Script Windows pour automatiser le démarrage du projet. Il installe automatiquement les dépendances si le dossier node_modules n'existe pas, démarre le serveur de développement Vite et ouvre la page dans le navigateur web.
+- **tsconfig.json** : Fichier principal de configuration de TypeScript qui fait le lien entre la configuration de l'application et celle des outils Node.
+- **tsconfig.app.json** : Configuration TypeScript stricte pour le code de l'application situé dans src (activation du mode strict, interdiction des variables inutilisées, ciblage moderne ES2023).
+- **tsconfig.node.json** : Configuration TypeScript dédiée aux fichiers d'outils exécutés par Node.js (vite.config.ts et vitest.config.ts).
+- **vite.config.ts** : Configuration de Vite. Il active le plugin React et configure le proxy local `/api/opensky` qui redirige les requêtes vers l'API OpenSky Network sans bloquer sur les règles CORS.
+- **vitest.config.ts** : Configuration de l'environnement de test Vitest (simulation du DOM avec jsdom et chargement du fichier de configuration des tests).
+- **README.md** : Ce fichier de documentation qui présente le projet, l'équipe, l'architecture et l'ensemble des fichiers.
 
-### 2. Dossier `public/` (Fichiers Statiques)
+### Dossier public/
 
-| Fichier | Rôle et Utilité |
-| :--- | :--- |
-| [public/favicon.svg](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/public/favicon.svg) | Icône vectorielle SVG représentant un aéronef / radar, affichée dans l'onglet du navigateur web. |
-| [public/icons.svg](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/public/icons.svg) | Fichier de sprites vectoriels SVG regroupant différentes icônes graphiques pouvant être référencées de façon optimisée. |
+- **public/favicon.svg** : Icône vectorielle du projet représentant un avion/radar, affichée dans l'onglet du navigateur.
+- **public/icons.svg** : Fichier contenant des symboles SVG regroupés pour l'affichage graphique.
 
----
+### Dossier src/
 
-### 3. Dossier `src/` (Code Source Principal)
+- **src/main.tsx** : Point d'entrée du code React. Il récupère l'élément HTML root, active le mode StrictMode de React et démarre le routeur BrowserRouter autour du composant RoutesFile.
+- **src/RoutesFile.tsx** : Déclare l'ensemble des routes de l'application avec React Router v6. Il enveloppe les pages dans le provider AppProvider pour le thème et utilise un Layout avec NavBar et Outlet.
+- **src/App.tsx** : Page d'accueil de l'application. Elle affiche une présentation du projet avec une animation de radar en CSS, un bouton d'accès rapide vers la page radar et une présentation des fonctionnalités avec des icônes Lucide.
+- **src/index.css** : Styles CSS de base pour réinitialiser les marges du navigateur, définir la police générale et gérer les adaptations d'affichage pour mobile.
+- **src/App.css** : Feuille de style principale de l'application. Elle contient la définition des couleurs pour le mode clair et le mode sombre, le style du tableau des vols, les filtres de recherche et les animations du radar.
+- **src/assets/vite.svg** : Image vectorielle du logo de Vite conservée dans les assets.
 
-| Fichier | Rôle et Utilité |
-| :--- | :--- |
-| [src/main.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/main.tsx) | Point de démarrage JavaScript/React. Récupère l'élément `#root` du DOM, initialise `createRoot` de ReactDOM, active `StrictMode` pour détecter les effets de bord, et englobe l'application dans le `<BrowserRouter>` de React Router. |
-| [src/RoutesFile.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/RoutesFile.tsx) | Déclare la structure de navigation et le routage de l'application. Encapsule toutes les routes dans `<AppProvider>` pour rendre le thème global accessible partout. Utilise un composant `<Layout>` avec `<NavBar>` et `<Outlet>` pour persister la navigation sur les pages enfants (`/`, `/flyradar`, `/flight/:icao`, `/about`), et définit la route d'erreur `*` vers [NotFound.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/pages/NotFound.tsx). |
-| [src/App.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/App.tsx) | Page d'accueil de l'application (vue Hero). Présente le projet avec un visuel de radar animé en CSS (cercles concentriques, balayage, signaux détectés), un bouton d'action menant directement au radar, et une grille d'arguments/fonctionnalités clés utilisant les icônes `lucide-react`. |
-| [src/index.css](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/index.css) | Styles CSS de base : reset universel des marges (`box-sizing: border-box`), typographie générale, couleur d'arrière-plan du `body` et règles d'adaptation responsive mobile (`@media (max-width: 760px)`). |
-| [src/App.css](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/App.css) | Feuille de style principale du projet (plus de 500 lignes). Définit les palettes complètes en variables CSS `:root` pour le mode clair et `[data-theme="dark"]` pour le mode sombre, la typographie, les cartes de contenu, les animations radar (`radar-sweep`, `radar-blip-glow`), le tableau de suivi des vols, les filtres et les formulaires. |
-| [src/assets/vite.svg](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/assets/vite.svg) | Asset graphique vectoriel du logo Vite. |
+### Dossier src/components/ (Composants réutilisables)
 
----
+- **src/components/NavBar.tsx** : Barre de navigation affichée en haut des pages. Elle propose les liens vers l'accueil et le radar en utilisant le composant Link de react-router-dom pour naviguer sans recharger la page.
+- **src/components/Panel.tsx** : Composant de boîte réutilisable pour afficher du contenu avec un conteneur propre et cohérent. Il reçoit son contenu via la prop children typée en ReactNode.
+- **src/components/StatusMessage.tsx** : Composant d'affichage de messages d'état pour l'utilisateur. Il propose deux variantes (message d'information classique ou message d'erreur avec fond rouge).
 
-### 4. Dossier `src/components/` (Composants UI Réutilisables)
+### Dossier src/context/ (Gestion du thème global)
 
-| Fichier | Rôle et Utilité |
-| :--- | :--- |
-| [src/components/NavBar.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/components/NavBar.tsx) | Composant de navigation principal. Propose les liens de navigation accessibles (`Accueil`, `Radar des vols`) grâce au composant `<Link>` de `react-router-dom` pour une navigation instantanée sans rechargement de page. |
-| [src/components/Panel.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/components/Panel.tsx) | Conteneur générique réutilisable encapsulant du contenu avec des bordures et ombres homogènes. Accepte les props typées `children: ReactNode` et une classe CSS optionnelle `className`. |
-| [src/components/StatusMessage.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/components/StatusMessage.tsx) | Composant d'alerte et de statut utilisateur. Accepte une variante typée (`info` par défaut, ou `error`), appliquant automatiquement les styles visuels appropriés pour informer l'utilisateur lors du chargement ou en cas d'erreur de requête API. |
+- **src/context/AppContextDefinition.ts** : Définit les types TypeScript du contexte (type Theme valant 'light' ou 'dark', interface de l'état AppState, interface AppContextValue) et instancie l'objet React AppContext.
+- **src/context/AppContext.tsx** : Composant AppProvider qui gère l'état du thème à l'aide d'un useReducer. Dès que le thème change, il modifie l'attribut data-theme de la page pour basculer les couleurs CSS.
+- **src/context/useAppContext.ts** : Hook personnalisé qui simplifie l'accès au contexte et s'assure qu'il est bien appelé à l'intérieur du composant AppProvider.
 
----
+### Dossier src/hooks/ (Logique métier et API)
 
-### 5. Dossier `src/context/` (Gestion Globale du Thème)
+- **src/hooks/useOpenSkyFlights.ts** : Hook qui effectue la requête HTTP vers l'API OpenSky via le proxy `/api/opensky`. Il utilise un AbortController pour annuler la requête lors du démontage du composant et transforme les données brutes reçues en une liste d'aéronefs au format typé Flight (calcul de la vitesse en km/h, arrondi de l'altitude).
+- **src/hooks/useFlightFilters.ts** : Hook qui regroupe la logique de filtrage et de tri. Il gère la recherche par nom de plaque, par coordonnées géographiques, par pays, ainsi que le tri par vitesse ou altitude. Il exporte aussi la fonction utilitaire formatPosition pour afficher les coordonnées sous forme lisible.
 
-| Fichier | Rôle et Utilité |
-| :--- | :--- |
-| [src/context/AppContextDefinition.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/context/AppContextDefinition.ts) | Définition des types et du contexte React pour l'état global. Définit le type `Theme = 'light' | 'dark'`, l'interface `AppState`, l'interface `AppContextValue` (avec la méthode `toggleTheme`), et crée l'instance `AppContext`. |
-| [src/context/AppContext.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/context/AppContext.tsx) | Fournisseur de contexte (`AppProvider`). Implémente un `useReducer` avec une action typée `toggle-theme` pour basculer de façon immuable entre clair et sombre. Un hook `useEffect` synchronise l'état avec l'attribut HTML `data-theme="dark"` sur `document.documentElement`. |
-| [src/context/useAppContext.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/context/useAppContext.ts) | Hook personnalisé facilitateur (*custom consumer hook*). Permet à n'importe quel composant d'accéder au contexte applicatif en toute sécurité ; déclenche une erreur explicite si le hook est utilisé en dehors d'un `<AppProvider>`. |
+### Dossier src/pages/ (Pages de l'application)
 
----
+- **src/pages/FlyRadar.tsx** : Page principale du radar. Elle réunit le bouton de changement de thème, le formulaire de filtres avec validation par expressions régulières, les messages de chargement ou d'erreur, et le tableau complet listant les avions trouvés.
+- **src/pages/FlightDetails.tsx** : Page affichant les détails d'un vol particulier. Elle utilise useParams pour récupérer l'identifiant ICAO depuis l'URL `/flight/:icao` et propose un lien de retour vers le radar.
+- **src/pages/About.tsx** : Page simple « À propos » qui explique brièvement le but du radar et la provenance des données OpenSky Network.
+- **src/pages/NotFound.tsx** : Page d'erreur 404 affichée lorsqu'une URL n'existe pas. Elle présente une animation CSS de signal perdu et un bouton utilisant useNavigate pour revenir à l'accueil.
 
-### 6. Dossier `src/hooks/` (Logique Métier et Requêtes API)
+### Dossier src/test/ (Tests automatisés)
 
-| Fichier | Rôle et Utilité |
-| :--- | :--- |
-| [src/hooks/useOpenSkyFlights.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/hooks/useOpenSkyFlights.ts) | Hook gérant la récupération des données de vol en direct depuis l'API OpenSky Network. Exécute un `fetch` sur `/api/opensky` avec `AbortController` pour annuler la requête lors du démontage du composant. Mappe les index bruts du tableau `states` vers des objets métier fortement typés `Flight` (conversion de la vitesse m/s en km/h, arrondis d'altitude, gestion des valeurs nulles). |
-| [src/hooks/useFlightFilters.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/hooks/useFlightFilters.ts) | Hook contenant toute la logique de tri et de filtrage des aéronefs. Extrait la liste unique des pays disponibles, effectue les recherches textuelles (plaque d'immatriculation et coordonnées GPS via la fonction utilitaire exportée `formatPosition`), applique les tris numériques prioritaires (vitesse ou altitude avec gestion des valeurs nulles), et fournit une fonction `resetFilters`. |
+- **src/test/setup.ts** : Fichier de préparation des tests. Il charge les extensions jest-dom pour Vitest afin de pouvoir tester facilement les éléments du DOM (vérifier les classes CSS, les attributs, etc.).
+- **src/test/App.test.tsx** : Contient les tests des composants React :
+  - Vérifie que le lien vers le radar est bien présent sur la page d'accueil.
+  - Vérifie que le composant StatusMessage affiche correctement la classe d'erreur lorsqu'on lui passe la variante error.
+  - Vérifie que le formulaire de filtres de la page FlyRadar bloque la soumission et affiche une alerte si une plaque invalide est saisie.
+- **src/test/useFlightFilters.test.ts** : Test unitaire du hook de filtrage useFlightFilters à l'aide de renderHook. Il vérifie que le filtrage par pays renvoie bien uniquement les avions du pays sélectionné.
 
 ---
 
-### 7. Dossier `src/pages/` (Vues de l'Application)
-
-| Fichier | Rôle et Utilité |
-| :--- | :--- |
-| [src/pages/FlyRadar.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/pages/FlyRadar.tsx) | Page centrale de l'application. Affiche le tableau de bord interactif : bouton de bascule du thème clair/sombre (`ThemeToggle`), formulaire complet de filtrage (par pays, plaque avec validation Regex, coordonnées de position, tris vitesse et altitude), affichage des erreurs de validation accessibles (`role="alert"`), messages de statut (chargement / erreur), et tableau des vols avec badges stylisés et liens vers les fiches détaillées. |
-| [src/pages/FlightDetails.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/pages/FlightDetails.tsx) | Page de détail d'un aéronef spécifique. Utilise le hook `useParams<{ icao: string }>()` de React Router pour extraire l'identifiant de vol depuis l'URL dynamique `/flight/:icao`, et propose un bouton pour revenir au radar. |
-| [src/pages/About.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/pages/About.tsx) | Page d'information (« À propos »). Présente brièvement l'origine des données du trafic aérien fournies par le réseau OpenSky Network. |
-| [src/pages/NotFound.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/pages/NotFound.tsx) | Page d'erreur 404 sur mesure (« Signal perdu »). Affiche une animation orbitale épurée en CSS et utilise le hook `useNavigate()` de React Router pour rediriger l'utilisateur vers la page d'accueil en un clic. |
-
----
-
-### 8. Dossier `src/test/` (Tests Automatisés)
-
-| Fichier | Rôle et Utilité |
-| :--- | :--- |
-| [src/test/setup.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/test/setup.ts) | Fichier d'initialisation des tests Vitest. Importe `@testing-library/jest-dom/vitest` afin d'étendre les assertions `expect` avec des comparateurs orientés DOM (`toBeInTheDocument()`, `toHaveClass()`, `toBeDisabled()`, etc.). |
-| [src/test/App.test.tsx](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/test/App.test.tsx) | Tests d'intégration des composants :<br>1. Vérifie la présence du lien de navigation vers `/flyradar` sur la page d'accueil.<br>2. Vérifie le rendu conditionnel du composant `StatusMessage` (variante par défaut vs variante erreur avec la classe `.error`).<br>3. Vérifie la validation conditionnelle du formulaire de filtres dans `FlyRadar` (blocage de la soumission et affichage du message d'erreur si des caractères invalides sont saisis dans la plaque). |
-| [src/test/useFlightFilters.test.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/test/useFlightFilters.test.ts) | Test unitaire du hook personnalisé `useFlightFilters` via `renderHook` de Testing Library. Vérifie que le filtrage par pays isole rigoureusement l'aéronef correspondant sans modifier la liste originale. |
-
----
-
-## 🚀 Installation et Lancement
+## Installation et lancement
 
 ### Prérequis
-- **Node.js** version 20 ou supérieure installée sur votre machine.
-- Un gestionnaire de paquets (`npm` inclus avec Node.js).
+- Avoir installé Node.js (version 20 ou supérieure recommandée).
+- Avoir npm installé (fourni automatiquement avec Node.js).
 
-### Option 1 : Lancement en un clic (Windows)
-Un script batch prêt à l'emploi est disponible à la racine du projet :
-1. Double-cliquez sur **[start_project.bat](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/start_project.bat)**.
-2. Le script installe automatiquement les dépendances si nécessaire, lance le serveur de développement Vite et ouvre votre navigateur par défaut à l'adresse `http://localhost:5173`.
+### Méthode 1 : Lancement automatique en un clic (Windows)
+À la racine du dossier, double-cliquez sur le fichier `start_project.bat`.
+Le script va vérifier les fichiers, installer les dépendances nécessaires avec `npm install`, lancer le serveur Vite et ouvrir automatiquement votre navigateur sur `http://localhost:5173`.
 
-### Option 2 : Lancement manuel en ligne de commande
+### Méthode 2 : Lancement manuel via le terminal
 
-1. **Installer les dépendances** :
-   ```bash
-   npm install
-   ```
+1. Installer les dépendances :
+```bash
+npm install
+```
 
-2. **Démarrer le serveur de développement** :
-   ```bash
-   npm run dev
-   ```
-   L'application sera accessible sur `http://localhost:5173`.
+2. Démarrer le serveur de développement :
+```bash
+npm run dev
+```
 
----
-
-## 🛠️ Commandes Disponibles
-
-| Commande | Action |
-| :--- | :--- |
-| `npm run dev` | Démarre le serveur local de développement Vite avec Hot Module Replacement (HMR). |
-| `npm run typecheck` | Lance la vérification des types TypeScript sur l'ensemble du projet sans générer de fichiers (`tsc -b`). |
-| `npm run lint` | Analyse le code source avec **Oxlint** pour détecter les erreurs de syntaxe et les violations des règles React / TypeScript. |
-| `npm test` | Exécute la suite de tests automatisés avec **Vitest**. |
-| `npm run build` | Effectue la vérification des types puis compile le bundle de production optimisé dans le dossier `dist/`. |
-| `npm run preview` | Prévisualise localement le build de production généré dans `dist/`. |
+L'application est ensuite accessible dans le navigateur à l'adresse indiquée dans le terminal (par défaut : `http://localhost:5173`).
 
 ---
 
-## 🛡️ Bonnes Pratiques Implémentées
+## Commandes disponibles
 
-1. **Robustesse Asynchrone** : Utilisation d'`AbortController` et d'un drapeau d'activité booléen (`isActive`) dans [useOpenSkyFlights.ts](file:///c:/Users/romin/Desktop/cours-projet/TypeScript/Projet-final-react/src/hooks/useOpenSkyFlights.ts) pour prévenir les fuites de mémoire et les conflits de requêtes (*race conditions*).
-2. **Accessibilité (a11y)** : Formulaires dotés d'attributs `aria-describedby`, `aria-invalid` et messages d'alerte configurés avec `role="alert"`.
-3. **Validation Réactive** : Expression régulière stricte pour la validation des formats d'immatriculation d'aéronefs et de saisie de coordonnées de latitude/longitude.
-4. **Performance** : Absence d'optimisations prématurées non mesurées (`useMemo`, `useCallback`) conformément aux recommandations de l'écosystème React 19.
-5. **Separation of Concerns (SoC)** : Découplage net entre l'affichage (pages / composants), la logique métier (hooks personnalisés), la gestion d'état (contexte / réducteur) et l'accès aux données (proxy d'API).
+- `npm run dev` : Lance le serveur de développement avec rechargement à chaud (Vite HMR).
+- `npm run typecheck` : Vérifie tous les types TypeScript du projet sans compiler de fichiers JavaScript.
+- `npm run lint` : Lance l'analyse de code avec Oxlint pour vérifier les règles de syntaxe et de bonnes pratiques.
+- `npm test` : Lance la suite de tests automatisés avec Vitest.
+- `npm run build` : Lance la vérification des types et compile l'application pour la production dans le dossier dist.
+- `npm run preview` : Permet de tester localement le rendu de la version compilée dans dist.
+
+---
+
+## Bonnes pratiques appliquées dans le projet
+
+- **Code TypeScript strict** : Aucun usage de `any`, toutes les données de l'API et les fonctions ont des interfaces et des types précis.
+- **Gestion des requêtes asynchrones** : Utilisation d'`AbortController` pour éviter les fuites de mémoire si l'utilisateur change de page pendant un chargement.
+- **Validation des données saisies** : Contrôle des entrées de l'utilisateur avec des expressions régulières (Regex) pour éviter les valeurs incohérentes dans les filtres.
+- **Accessibilité** : Utilisation de balises HTML sémantiques, d'attributs `aria-describedby`, `aria-invalid` et de rôles `alert` pour les messages d'erreur.
+- **Organisation modulaire** : Séparation claire des responsabilités entre les composants graphiques, la gestion d'état, les hooks personnalisés et les tests.
