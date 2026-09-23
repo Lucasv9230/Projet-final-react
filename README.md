@@ -232,7 +232,7 @@ Mise en place de l'environnement de travail avec Vite, React et TypeScript. Conf
 - Lucas Vauclin :
 Architecture de la navigation et du routage avec React Router v6 (fichier RoutesFile.tsx). Création de la barre de navigation NavBar, intégration de la page d'accueil, premier branchement entre l'API OpenSky et la page FlyRadar, et création du script automatisé start_project.bat pour Windows.
 
-- Anguelo Carath :
+- Anguelo Carathanasis :
 Conception des composants graphiques réutilisables (Panel et StatusMessage). Développement de toute la logique métier des filtres et des tris multi-critères dans le hook useFlightFilters, gestion de la validation des formulaires et correction des bugs fonctionnels.
 
 - Romain Tholle :
