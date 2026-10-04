@@ -1,6 +1,5 @@
-/* Définition des palettes de couleurs (Variables CSS) */
 :root {
-  /* Mode Clair par défaut */
+  
   --bg-body: #f8fafc;
   --bg-container: #ffffff;
   --bg-panel: #f8fafc;
@@ -31,7 +30,7 @@
 }
 
 [data-theme="dark"] {
-  /* Mode Sombre */
+  
   --bg-body: #0f172a;
   --bg-container: #1e293b;
   --bg-panel: #0f172a;
@@ -61,7 +60,7 @@
   --shadow-lg: 0 4px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* Base */
+
 body {
   background-color: var(--bg-body);
   color: var(--text-main);
@@ -97,7 +96,7 @@ h1 {
   padding-bottom: 24px;
 }
 
-/* Zone des filtres */
+
 .filters {
   display: grid;
   grid-template-columns: repeat(3, minmax(160px, 1fr));
@@ -171,7 +170,7 @@ h1 {
   letter-spacing: 0;
 }
 
-/* Boutons */
+
 .reset-button {
   min-height: 44px;
   padding: 10px 20px;
@@ -218,7 +217,7 @@ h1 {
   box-shadow: none;
 }
 
-/* Messages */
+
 .status-message, .empty-message {
   padding: 16px 20px;
   border-radius: 10px;
@@ -240,7 +239,7 @@ h1 {
   background: transparent;
 }
 
-/* Tableau */
+
 .table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--border-color);
@@ -286,7 +285,7 @@ h1 {
   border-bottom: none;
 }
 
-/* Badges */
+
 .font-bold {
   font-weight: 600;
   color: var(--badge-text);
@@ -294,8 +293,8 @@ h1 {
   padding: 4px 10px;
   border-radius: 6px;
   display: inline-block;
-  min-width: 85px; /* Largeur fixe pour unifier les cases */
-  text-align: center; /* Centrage du texte dans le badge */
+  min-width: 85px; 
+  text-align: center; 
 }
 
 .font-bold a {
@@ -318,7 +317,7 @@ h1 {
   display: inline-block;
 }
 
-/* Responsive */
+
 @media (max-width: 760px) {
   .container {
     margin: 0;
@@ -338,7 +337,7 @@ h1 {
   }
 }
 
-/* Accueil */
+
 .navbar {
   position: relative;
   z-index: 2;

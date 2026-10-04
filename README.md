@@ -1,5 +1,7 @@
 # OpenSky Radar
 
+**Projet scolaire collaboratif**
+Ce projet a été réalisé en groupe dans le cadre de nos études à Ynov Campus.
 ## Description
 
 OpenSky Radar est une application web développée dans le cadre de notre projet de cours de TypeScript et React.
@@ -66,7 +68,7 @@ Projet-final-react/
 │   ├── package.json
 │   ├── package-lock.json
 │   ├── README.md
-│   ├── start_project.bat
+│   ├── run.bat
 │   ├── tsconfig.json
 │   ├── tsconfig.app.json
 │   ├── tsconfig.node.json
@@ -120,7 +122,7 @@ Projet-final-react/
 - index.html : fichier HTML de base de l'application qui contient la balise div d'identifiant root dans laquelle React se charge.
 - package.json : liste les bibliothèques installées, les dépendances de développement et les commandes de scripts du projet.
 - package-lock.json : enregistre les versions exactes des paquets installés pour garantir un environnement identique à toute l'équipe.
-- start_project.bat : script pour Windows permettant de tout installer et de lancer le projet automatiquement en un clic.
+- run.bat : script pour Windows permettant de tout installer et de lancer le projet automatiquement en un clic.
 - tsconfig.json : fichier principal de configuration TypeScript qui coordonne la configuration client et la configuration des outils.
 - tsconfig.app.json : configuration stricte du compilateur TypeScript pour le code situé dans le dossier src.
 - tsconfig.node.json : configuration TypeScript dédiée aux fichiers d'outils Node comme vite.config.ts et vitest.config.ts.
@@ -190,7 +192,7 @@ cd Projet-final-react
 ### Étape 2 : Lancer le projet
 
 #### Méthode rapide avec le fichier .bat (Windows)
-À la racine du dossier cloné, faites simplement un double-clic sur le fichier `start_project.bat`.
+À la racine du dossier cloné, faites simplement un double-clic sur le fichier `run.bat`.
 Ce script s'occupe de tout automatiquement :
 - Il vérifie si le dossier node_modules existe. S'il n'existe pas, il lance automatiquement la commande `npm install`.
 - Il démarre le serveur de développement Vite dans une fenêtre de commande.
@@ -222,7 +224,7 @@ npm run dev
 
 ---
 
-## Auteurs et qui a fait quoi
+### 👥 Contributeurs
 
 Le projet a été réalisé en groupe de 4 étudiants. Nous nous sommes partagé les tâches selon 4 grands domaines de compétences :
 
@@ -230,7 +232,7 @@ Le projet a été réalisé en groupe de 4 étudiants. Nous nous sommes partagé
 Mise en place de l'environnement de travail avec Vite, React et TypeScript. Configuration du proxy de développement dans vite.config.ts pour éviter les erreurs CORS avec l'API OpenSky Network. Mise en place de la suite de tests automatisés (Vitest et React Testing Library), réglage du compilateur TypeScript en mode strict dans tsconfig.app.json et intégration de la page d'erreur 404.
 
 - Lucas Vauclin :
-Architecture de la navigation et du routage avec React Router v6 (fichier RoutesFile.tsx). Création de la barre de navigation NavBar, intégration de la page d'accueil, premier branchement entre l'API OpenSky et la page FlyRadar, et création du script automatisé start_project.bat pour Windows.
+Architecture de la navigation et du routage avec React Router v6 (fichier RoutesFile.tsx). Création de la barre de navigation NavBar, intégration de la page d'accueil, premier branchement entre l'API OpenSky et la page FlyRadar, et création du script automatisé run.bat pour Windows.
 
 - Anguelo Carathanasis :
 Conception des composants graphiques réutilisables (Panel et StatusMessage). Développement de toute la logique métier des filtres et des tris multi-critères dans le hook useFlightFilters, gestion de la validation des formulaires et correction des bugs fonctionnels.
